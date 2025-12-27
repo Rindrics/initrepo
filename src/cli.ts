@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import packageJson from '../package.json';
+import { registerInitCommand } from './commands/init';
 
 const { version: VERSION, name: NAME } = packageJson;
 
@@ -11,6 +12,8 @@ export function createProgram(): Command {
     .name(NAME)
     .description('Rapid repository setup CLI tool')
     .version(VERSION);
+
+  registerInitCommand(program);
 
   return program;
 }

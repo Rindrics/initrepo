@@ -1,0 +1,27 @@
+{
+  "name": "<%= name %>",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "lint": "biome lint src",
+    "format": "biome format src --write",
+    "check": "biome check src",
+    "test": "bun test",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "bun-types": "^1.0.0",
+    "husky": "^9.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+
