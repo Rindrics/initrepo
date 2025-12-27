@@ -1,0 +1,7 @@
+name: "CodeQL config for setup-repo"
+
+paths:
+  - src
+
+paths-ignore:
+  - src/node_modules
