@@ -78,25 +78,30 @@ export async function loadTemplate(
 }
 
 export async function generatePackageJson(
-  options: InitOptions,
-): Promise<GeneratedFile> {
-  // Fetch latest versions and npm username in parallel
-  const [versions, author] = await Promise.all([
-    getLatestVersions(DEV_DEPENDENCIES),
-    getNpmUsername(),
-  ]);
-
-  const content = await loadTemplate('typescript/package.json.ejs', {
-    name: options.projectName,
-    isDevcode: options.isDevcode,
-    author: author ?? '',
-    versions,
-  });
-
-  return {
-    path: 'package.json',
-    content,
-  };
+    options: InitOptions,
+  ): Promise<GeneratedFile> {
+    try {
+      // Fetch latest versions and npm username in parallel
+      const [versions, author] = await Promise.all([
+        getLatestVersions(DEV_DEPENDENCIES),
+        getNpmUsername(),
+      ]);
+      const templatePath = `${options.lang}/package.json.ejs`;
+      const content = await loadTemplate(templatePath, {
+        name: options.projectName,
+        isDevcode: options.isDevcode,
+        author: author ?? '',
+        versions,
+      });
+      return {
+        path: 'package.json',
+        content,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to generate package.json: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
 }
 
 export async function writeGeneratedFiles(
