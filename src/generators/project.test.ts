@@ -45,6 +45,7 @@ describe('project generator', () => {
       const result = await loadTemplate('typescript/package.json.ejs', {
         name: 'test',
         author: '',
+        isDevcode: false,
         versions: {
           '@biomejs/biome': '1.0.0',
           '@commitlint/cli': '1.0.0',
