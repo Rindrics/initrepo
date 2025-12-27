@@ -153,5 +153,22 @@ describe('project generator', () => {
         }),
       ).rejects.toThrow(ProjectNameError);
     });
+
+    test('should use targetDir for output while keeping projectName for package.json', async () => {
+      const projectDir = path.join(testDir, 'new-project');
+
+      await generateProject({
+        projectName: 'new-project',
+        lang: 'typescript',
+        isDevcode: false,
+        targetDir: projectDir,
+      });
+
+      const packageJsonPath = path.join(projectDir, 'package.json');
+      const content = await fs.readFile(packageJsonPath, 'utf-8');
+      const pkg = JSON.parse(content);
+
+      expect(pkg.name).toBe('new-project');
+    });
   });
 });

@@ -6,4 +6,6 @@ export interface InitOptions {
   lang: Language;
   /** If true, projectName is a development code that will be replaced later */
   isDevcode: boolean;
+  /** Optional output directory path. Defaults to projectName if not specified. */
+  targetDir?: string;
 }

@@ -198,17 +198,20 @@ export function validateProjectName(projectName: string): void {
 export async function generateProject(options: InitOptions): Promise<void> {
   validateProjectName(options.projectName);
 
+  // Use targetDir if specified, otherwise use projectName as directory name
+  const outputDir = options.targetDir ?? options.projectName;
+
   const files: GeneratedFile[] = [await generatePackageJson(options)];
 
   try {
-    await writeGeneratedFiles(options.projectName, files);
+    await writeGeneratedFiles(outputDir, files);
   } catch (error) {
     if (error instanceof FileWriteError) {
       throw error;
     }
     throw new FileWriteError(
       `Failed to generate project "${options.projectName}": ${error instanceof Error ? error.message : String(error)}`,
-      options.projectName,
+      outputDir,
       error instanceof Error ? error : undefined,
     );
   }
