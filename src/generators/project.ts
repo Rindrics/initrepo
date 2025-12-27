@@ -78,47 +78,76 @@ export async function loadTemplate(
 }
 
 export async function generatePackageJson(
-    options: InitOptions,
-  ): Promise<GeneratedFile> {
-    try {
-      // Fetch latest versions and npm username in parallel
-      const [versions, author] = await Promise.all([
-        getLatestVersions(DEV_DEPENDENCIES),
-        getNpmUsername(),
-      ]);
-      const templatePath = `${options.lang}/package.json.ejs`;
-      const content = await loadTemplate(templatePath, {
-        name: options.projectName,
-        isDevcode: options.isDevcode,
-        author: author ?? '',
-        versions,
-      });
-      return {
-        path: 'package.json',
-        content,
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to generate package.json: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
+  options: InitOptions,
+): Promise<GeneratedFile> {
+  try {
+    // Fetch latest versions and npm username in parallel
+    const [versions, author] = await Promise.all([
+      getLatestVersions(DEV_DEPENDENCIES),
+      getNpmUsername(),
+    ]);
+    const templatePath = `${options.lang}/package.json.ejs`;
+    const content = await loadTemplate(templatePath, {
+      name: options.projectName,
+      isDevcode: options.isDevcode,
+      author: author ?? '',
+      versions,
+    });
+    return {
+      path: 'package.json',
+      content,
+    };
+  } catch (error) {
+    throw new Error(
+      `Failed to generate package.json: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+export class FileWriteError extends Error {
+  constructor(
+    message: string,
+    public readonly targetPath: string,
+    public readonly cause?: Error,
+  ) {
+    super(message);
+    this.name = 'FileWriteError';
+  }
 }
 
 export async function writeGeneratedFiles(
   targetDir: string,
   files: GeneratedFile[],
 ): Promise<void> {
-  await fs.mkdir(targetDir, { recursive: true });
+  try {
+    await fs.mkdir(targetDir, { recursive: true });
+  } catch (error) {
+    const fsError = error as NodeJS.ErrnoException;
+    throw new FileWriteError(
+      `Failed to create target directory "${targetDir}": ${fsError.message}`,
+      targetDir,
+      fsError,
+    );
+  }
 
   for (const file of files) {
     const filePath = path.join(targetDir, file.path);
     const fileDir = path.dirname(filePath);
 
-    if (fileDir !== targetDir) {
-      await fs.mkdir(fileDir, { recursive: true });
-    }
+    try {
+      if (fileDir !== targetDir) {
+        await fs.mkdir(fileDir, { recursive: true });
+      }
 
-    await fs.writeFile(filePath, file.content, 'utf-8');
+      await fs.writeFile(filePath, file.content, 'utf-8');
+    } catch (error) {
+      const fsError = error as NodeJS.ErrnoException;
+      throw new FileWriteError(
+        `Failed to write file "${file.path}" in "${targetDir}": ${fsError.message}`,
+        filePath,
+        fsError,
+      );
+    }
   }
 }
 
