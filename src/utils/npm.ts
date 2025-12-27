@@ -3,6 +3,8 @@ import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
+type ExecFn = (command: string) => Promise<{ stdout: string; stderr: string }>;
+
 /**
  * Fetches the latest version of a package from npm registry
  */
@@ -21,11 +23,14 @@ export async function getLatestVersion(packageName: string): Promise<string> {
 
 /**
  * Gets the current npm username if logged in
+ * @param execFn - Optional exec function for testing (defaults to execAsync)
  */
-export async function getNpmUsername(): Promise<string | null> {
+export async function getNpmUsername(
+  execFn: ExecFn = execAsync,
+): Promise<string | null> {
   try {
-    const { stdout } = await execAsync('npm whoami');
-    return stdout.trim();
+    const { stdout } = await execFn('npm whoami');
+    return stdout.trim() || null;
   } catch {
     return null;
   }

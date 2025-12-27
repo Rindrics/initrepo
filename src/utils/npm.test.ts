@@ -72,10 +72,28 @@ describe('npm utils', () => {
   });
 
   describe('getNpmUsername', () => {
-    // This test actually runs npm whoami, so it depends on npm login state
-    test('should return string or null', async () => {
-      const username = await getNpmUsername();
-      expect(username === null || typeof username === 'string').toBe(true);
+    test('should return username when logged in', async () => {
+      const mockExec = mock(() =>
+        Promise.resolve({ stdout: 'testuser\n', stderr: '' }),
+      );
+
+      const username = await getNpmUsername(mockExec);
+      expect(username).toBe('testuser');
+      expect(mockExec).toHaveBeenCalledWith('npm whoami');
+    });
+
+    test('should return null when stdout is empty', async () => {
+      const mockExec = mock(() => Promise.resolve({ stdout: '', stderr: '' }));
+
+      const username = await getNpmUsername(mockExec);
+      expect(username).toBeNull();
+    });
+
+    test('should return null when npm whoami fails', async () => {
+      const mockExec = mock(() => Promise.reject(new Error('Not logged in')));
+
+      const username = await getNpmUsername(mockExec);
+      expect(username).toBeNull();
     });
   });
 });
