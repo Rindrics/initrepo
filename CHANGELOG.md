@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.1.5](https://github.com/Rindrics/initrepo/compare/v0.1.4...v0.1.5) - 2025-12-28
+- fix: correct binary name by @Rindrics in https://github.com/Rindrics/initrepo/pull/18
+
 ## [v0.1.4](https://github.com/Rindrics/initrepo/compare/v0.1.3...v0.1.4) - 2025-12-28
 - ci: use Node.js 24 to use npm 11.6 by @Rindrics in https://github.com/Rindrics/initrepo/pull/15
 
