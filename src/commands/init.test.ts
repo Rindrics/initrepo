@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { Command } from 'commander';
 import * as projectGenerator from '../generators/project';
-import { initProject, registerInitCommand, validateLanguage } from './init';
+import {
+  initProject,
+  promptYesNo,
+  registerInitCommand,
+  validateLanguage,
+} from './init';
 
 describe('init command', () => {
   describe('validateLanguage', () => {
@@ -105,6 +110,61 @@ describe('init command', () => {
         (opt) => opt.long === '--author',
       );
       expect(authorOption).toBeDefined();
+    });
+
+    test('should have --create-repo option', () => {
+      const program = new Command();
+      registerInitCommand(program);
+
+      const initCmd = program.commands.find((cmd) => cmd.name() === 'init');
+      const createRepoOption = initCmd?.options.find(
+        (opt) => opt.long === '--create-repo',
+      );
+      expect(createRepoOption).toBeDefined();
+    });
+
+    test('should have --no-create-repo option', () => {
+      const program = new Command();
+      registerInitCommand(program);
+
+      const initCmd = program.commands.find((cmd) => cmd.name() === 'init');
+      const noCreateRepoOption = initCmd?.options.find(
+        (opt) => opt.long === '--no-create-repo',
+      );
+      expect(noCreateRepoOption).toBeDefined();
+    });
+
+    test('should have --no-devcode option', () => {
+      const program = new Command();
+      registerInitCommand(program);
+
+      const initCmd = program.commands.find((cmd) => cmd.name() === 'init');
+      const noDevcodeOption = initCmd?.options.find(
+        (opt) => opt.long === '--no-devcode',
+      );
+      expect(noDevcodeOption).toBeDefined();
+    });
+
+    test('should have --private option', () => {
+      const program = new Command();
+      registerInitCommand(program);
+
+      const initCmd = program.commands.find((cmd) => cmd.name() === 'init');
+      const privateOption = initCmd?.options.find(
+        (opt) => opt.long === '--private',
+      );
+      expect(privateOption).toBeDefined();
+    });
+
+    test('should have --no-private option', () => {
+      const program = new Command();
+      registerInitCommand(program);
+
+      const initCmd = program.commands.find((cmd) => cmd.name() === 'init');
+      const noPrivateOption = initCmd?.options.find(
+        (opt) => opt.long === '--no-private',
+      );
+      expect(noPrivateOption).toBeDefined();
     });
   });
 });
