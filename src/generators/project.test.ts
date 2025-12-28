@@ -226,6 +226,13 @@ describe('project generator', () => {
   });
 
   describe('generateTagprWorkflow', () => {
+    // Helper to extract major version number from "vN" format
+    function extractMajorVersion(content: string, action: string): number {
+      const regex = new RegExp(`${action.replace('/', '\\/')}@v(\\d+)`);
+      const match = content.match(regex);
+      return match ? Number.parseInt(match[1], 10) : 0;
+    }
+
     test('should generate tagpr.yml for devcode project', async () => {
       const result = await generateTagprWorkflow({
         projectName: 'test-devcode',
@@ -238,6 +245,14 @@ describe('project generator', () => {
         'GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}',
       );
       expect(result.content).toContain('# TODO: After replace-devcode');
+
+      // Version should be at least the minimum expected
+      expect(
+        extractMajorVersion(result.content, 'actions/checkout'),
+      ).toBeGreaterThanOrEqual(5);
+      expect(
+        extractMajorVersion(result.content, 'Songmu/tagpr'),
+      ).toBeGreaterThanOrEqual(1);
     });
 
     test('should generate tagpr.yml for production project', async () => {
@@ -252,6 +267,14 @@ describe('project generator', () => {
         'GITHUB_TOKEN: ${{ secrets.PAT_FOR_TAGPR }}',
       );
       expect(result.content).not.toContain('# TODO: After replace-devcode');
+
+      // Version should be at least the minimum expected
+      expect(
+        extractMajorVersion(result.content, 'actions/checkout'),
+      ).toBeGreaterThanOrEqual(4);
+      expect(
+        extractMajorVersion(result.content, 'Songmu/tagpr'),
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 

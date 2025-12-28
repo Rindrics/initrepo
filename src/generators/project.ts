@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import ejs from 'ejs';
 import type { InitOptions } from '../types';
+import { GITHUB_ACTIONS, getLatestActionVersions } from '../utils/github';
 import { getLatestVersions, getNpmUsername } from '../utils/npm';
 
 const TEMPLATES_DIR = path.join(import.meta.dir, '../templates');
@@ -143,9 +144,11 @@ export async function generateTagprConfig(
 export async function generateTagprWorkflow(
   options: InitOptions,
 ): Promise<GeneratedFile> {
+  const actionVersions = await getLatestActionVersions(GITHUB_ACTIONS);
   const templatePath = 'common/workflows/tagpr.yml.ejs';
   const content = await loadTemplate(templatePath, {
     isDevcode: options.isDevcode,
+    actions: actionVersions,
   });
   return {
     path: '.github/workflows/tagpr.yml',
