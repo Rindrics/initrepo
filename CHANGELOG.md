@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.1.2](https://github.com/Rindrics/initrepo/compare/v0.1.1...v0.1.2) - 2025-12-28
+- ci: use OIDC by @Rindrics in https://github.com/Rindrics/initrepo/pull/11
+
 ## [v0.1.1](https://github.com/Rindrics/setup-repo/compare/v0.1.0...v0.1.1) - 2025-12-28
 - fix: use bun on CI by @Rindrics in https://github.com/Rindrics/setup-repo/pull/9
 
