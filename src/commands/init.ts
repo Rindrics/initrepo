@@ -72,8 +72,15 @@ export async function initProject(options: InitProjectOptions): Promise<void> {
             : undefined,
           isPrivate: options.isPrivate ?? false,
         });
-        console.log(`✅ GitHub repository created: ${result.url}`);
-        console.log(`   Labels created: tagpr:minor, tagpr:major`);
+
+        if (result.alreadyExisted) {
+          console.log(`ℹ️  Repository already exists: ${result.url}`);
+          console.log(`   Labels ensured: tagpr:minor, tagpr:major`);
+        } else {
+          console.log(`✅ GitHub repository created: ${result.url}`);
+          console.log(`   Labels created: tagpr:minor, tagpr:major`);
+        }
+
         console.log(`\n   To push your code:`);
         console.log(`   cd ${options.projectName}`);
         console.log(`   git init`);
