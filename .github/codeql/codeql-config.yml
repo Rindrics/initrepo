@@ -1,0 +1,7 @@
+name: "CodeQL config for initrepo"
+
+paths:
+  - src
+
+paths-ignore:
+  - adr/

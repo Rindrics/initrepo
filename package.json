@@ -1,5 +1,5 @@
 {
-  "name": "@rindrics/setup-repo",
+  "name": "@rindrics/initrepo",
   "version": "0.0.1",
   "description": "setup GitHub repo with dev tools",
   "type": "module",
@@ -13,6 +13,7 @@
     "format": "biome format src --write",
     "check": "biome check src",
     "test": "bun test",
+    "clean": "rm -rf test-* dist",
     "prepare": "husky"
   },
   "keywords": ["cli", "scaffold", "setup", "repository"],
@@ -20,12 +21,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rindrics/setup-repo.git"
+    "url": "git+https://github.com/Rindrics/initrepo.git"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^20.2.0",
+    "@types/ejs": "^3.1.5",
     "bun-types": "^1.0.0",
     "husky": "^9.0.0",
     "typescript": "^5.0.0"

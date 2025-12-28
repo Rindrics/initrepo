@@ -1,0 +1,29 @@
+{
+  "name": "<%= name %>",
+  "version": "0.0.0",
+<% if (isDevcode) { -%>
+  "private": true,
+<% } -%>
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "lint": "biome lint src",
+    "format": "biome format src --write",
+    "check": "biome check src",
+    "test": "bun test",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "<%= author %>",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^<%= versions['@biomejs/biome'] %>",
+    "@commitlint/cli": "^<%= versions['@commitlint/cli'] %>",
+    "@commitlint/config-conventional": "^<%= versions['@commitlint/config-conventional'] %>",
+    "bun-types": "^<%= versions['bun-types'] %>",
+    "husky": "^<%= versions['husky'] %>",
+    "typescript": "^<%= versions['typescript'] %>"
+  }
+}
