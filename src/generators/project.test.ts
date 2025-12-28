@@ -40,9 +40,7 @@ describe('project generator', () => {
     });
 
     test('should throw TemplateError for non-existent template', () => {
-      expect(() => loadTemplate('non-existent.ejs', {})).toThrow(
-        TemplateError,
-      );
+      expect(() => loadTemplate('non-existent.ejs', {})).toThrow(TemplateError);
       expect(() => loadTemplate('non-existent.ejs', {})).toThrow(
         'Template not found',
       );

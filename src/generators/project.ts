@@ -130,20 +130,18 @@ export async function generateCodeqlWorkflow(
   options: InitOptions,
   actionVersions: Record<string, string>,
 ): Promise<GeneratedFile> {
-  const content = loadTemplate(
-    `${options.lang}/workflows/codeql.yml.ejs`,
-    { actionVersions },
-  );
+  const content = loadTemplate(`${options.lang}/workflows/codeql.yml.ejs`, {
+    actionVersions,
+  });
   return { path: '.github/workflows/codeql.yml', content };
 }
 
 export async function generateCodeqlConfig(
   options: InitOptions,
 ): Promise<GeneratedFile> {
-  const content = loadTemplate(
-    `${options.lang}/codeql/codeql-config.yml.ejs`,
-    { name: options.projectName },
-  );
+  const content = loadTemplate(`${options.lang}/codeql/codeql-config.yml.ejs`, {
+    name: options.projectName,
+  });
   return { path: '.github/codeql/codeql-config.yml', content };
 }
 
