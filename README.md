@@ -1,6 +1,6 @@
 # @rindrics/initrepo
 
-CLI tool for rapid repository setup with CI/CD, code quality tools, and release automation.
+CLI tool for rapid repository setup with CI/CD, code quality tools, and release automation via [tagpr](https://github.com/Songmu/tagpr).
 
 ## Installation
 
@@ -13,12 +13,20 @@ npm install -g @rindrics/initrepo
 ### Create a new project
 
 ```bash
-# Create a devcode project (private, can be renamed later)
-initrepo init my-super-project --devcode
+# Interactive mode (prompts for options)
+initrepo init my-super-project
 
-# Create a release-ready project
-initrepo init @scope/my-package
+# Non-interactive mode
+initrepo init my-super-project --devcode --create-repo --private
 ```
+
+Options:
+- `-d, --devcode` - Use devcode mode (adds `private: true` to package.json)
+- `--create-repo` - Create GitHub repository with tagpr labels
+- `-p, --private` - Make GitHub repository private
+- `-a, --author <name>` - Package author
+
+Requires `GITHUB_TOKEN` environment variable for repository creation.
 
 ### Prepare for release
 
