@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import * as npmUtils from '../utils/npm';
 import { getLatestActionVersions } from '../utils/github';
+import * as npmUtils from '../utils/npm';
 import {
   generateEntryPoint,
   generatePackageJson,
