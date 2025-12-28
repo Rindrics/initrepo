@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.0](https://github.com/Rindrics/initrepo/compare/v0.1.5...v0.2.0) - 2025-12-28
+- ci: commit as GitHub Actions bot by @Rindrics in https://github.com/Rindrics/initrepo/pull/20
+- feat: generate publish.yml from prepare-release command by @Rindrics in https://github.com/Rindrics/initrepo/pull/21
+- feat: embed templates at build by @Rindrics in https://github.com/Rindrics/initrepo/pull/23
+
 ## [v0.1.5](https://github.com/Rindrics/initrepo/compare/v0.1.4...v0.1.5) - 2025-12-28
 - fix: correct binary name by @Rindrics in https://github.com/Rindrics/initrepo/pull/18
 
