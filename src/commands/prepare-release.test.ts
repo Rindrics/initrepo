@@ -6,9 +6,6 @@ import {
   detectDevcode,
   prepareRelease,
   registerPrepareReleaseCommand,
-  updateCodeqlConfig,
-  updatePackageJson,
-  updateTagprWorkflow,
 } from './prepare-release';
 
 describe('prepare-release command', () => {
@@ -21,6 +18,7 @@ describe('prepare-release command', () => {
       recursive: true,
     });
     await fs.mkdir(path.join(testDir, '.github/codeql'), { recursive: true });
+    await fs.mkdir(path.join(testDir, 'src'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -58,99 +56,8 @@ describe('prepare-release command', () => {
     });
   });
 
-  describe('updatePackageJson', () => {
-    test('should update name and remove private flag', async () => {
-      const packageJson = {
-        name: 'my-devcode',
-        version: '0.0.0',
-        private: true,
-        description: 'Test project',
-      };
-      await fs.writeFile(
-        path.join(testDir, 'package.json'),
-        JSON.stringify(packageJson, null, 2),
-      );
-
-      const devcode = await updatePackageJson(testDir, '@scope/my-package');
-
-      expect(devcode).toBe('my-devcode');
-
-      const content = await fs.readFile(
-        path.join(testDir, 'package.json'),
-        'utf-8',
-      );
-      const updated = JSON.parse(content);
-
-      expect(updated.name).toBe('@scope/my-package');
-      expect(updated.private).toBeUndefined();
-      expect(updated.version).toBe('0.0.0');
-    });
-  });
-
-  describe('updateTagprWorkflow', () => {
-    test('should replace GITHUB_TOKEN with PAT_FOR_TAGPR', async () => {
-      const workflow = `name: tagpr
-on:
-  push:
-    branches: [main]
-
-jobs:
-  tagpr:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        # TODO: After replace-devcode, add token: \${{ secrets.PAT_FOR_TAGPR }}
-
-      - uses: Songmu/tagpr@v1
-        env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-          # TODO: After replace-devcode, use PAT_FOR_TAGPR instead
-`;
-      await fs.writeFile(
-        path.join(testDir, '.github/workflows/tagpr.yml'),
-        workflow,
-      );
-
-      await updateTagprWorkflow(testDir);
-
-      const content = await fs.readFile(
-        path.join(testDir, '.github/workflows/tagpr.yml'),
-        'utf-8',
-      );
-
-      expect(content).toContain('GITHUB_TOKEN: ${{ secrets.PAT_FOR_TAGPR }}');
-      expect(content).toContain('token: ${{ secrets.PAT_FOR_TAGPR }}');
-      expect(content).not.toContain('secrets.GITHUB_TOKEN');
-      expect(content).not.toContain('TODO: After replace-devcode');
-    });
-  });
-
-  describe('updateCodeqlConfig', () => {
-    test('should replace devcode name', async () => {
-      const config = `name: "CodeQL config for my-devcode"
-
-paths:
-  - src
-`;
-      await fs.writeFile(
-        path.join(testDir, '.github/codeql/codeql-config.yml'),
-        config,
-      );
-
-      await updateCodeqlConfig(testDir, 'my-devcode', '@scope/my-package');
-
-      const content = await fs.readFile(
-        path.join(testDir, '.github/codeql/codeql-config.yml'),
-        'utf-8',
-      );
-
-      expect(content).toContain('@scope/my-package');
-      expect(content).not.toContain('my-devcode');
-    });
-  });
-
   describe('prepareRelease', () => {
-    test('should auto-detect devcode and update all files', async () => {
+    test('should replace only in managed locations', async () => {
       // Setup test files with private: true
       await fs.writeFile(
         path.join(testDir, 'package.json'),
@@ -171,7 +78,7 @@ jobs:
       );
       await fs.writeFile(
         path.join(testDir, '.github/codeql/codeql-config.yml'),
-        'name: "CodeQL config for devcode"',
+        'name: "CodeQL config for devcode"\n\npaths:\n  - src',
       );
 
       await prepareRelease({
@@ -179,26 +86,66 @@ jobs:
         targetDir: testDir,
       });
 
-      // Verify package.json
+      // Verify package.json - name should be replaced
       const pkg = JSON.parse(
         await fs.readFile(path.join(testDir, 'package.json'), 'utf-8'),
       );
       expect(pkg.name).toBe('@scope/package');
       expect(pkg.private).toBeUndefined();
 
-      // Verify tagpr.yml
+      // Verify tagpr.yml - tokens should be replaced
       const tagpr = await fs.readFile(
         path.join(testDir, '.github/workflows/tagpr.yml'),
         'utf-8',
       );
       expect(tagpr).toContain('secrets.PAT_FOR_TAGPR');
+      expect(tagpr).not.toContain('secrets.GITHUB_TOKEN');
 
-      // Verify codeql-config.yml
+      // Verify codeql-config.yml - only name field should be replaced
       const codeql = await fs.readFile(
         path.join(testDir, '.github/codeql/codeql-config.yml'),
         'utf-8',
       );
       expect(codeql).toContain('@scope/package');
+    });
+
+    test('should detect unmanaged occurrences', async () => {
+      // Setup with devcode appearing in an unmanaged file
+      await fs.writeFile(
+        path.join(testDir, 'package.json'),
+        JSON.stringify({ name: 'my-devcode', version: '0.0.0', private: true }),
+      );
+      await fs.writeFile(
+        path.join(testDir, 'src/index.ts'),
+        'console.log("Hello from my-devcode!");',
+      );
+
+      // Capture console output
+      const logs: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args) => logs.push(args.join(' '));
+
+      try {
+        await prepareRelease({
+          publishName: '@scope/package',
+          targetDir: testDir,
+        });
+      } finally {
+        console.log = originalLog;
+      }
+
+      // Verify unmanaged occurrence was reported
+      const output = logs.join('\n');
+      expect(output).toContain('unmanaged occurrence');
+      expect(output).toContain('src/index.ts');
+
+      // Verify unmanaged file was NOT modified
+      const srcContent = await fs.readFile(
+        path.join(testDir, 'src/index.ts'),
+        'utf-8',
+      );
+      expect(srcContent).toContain('my-devcode');
+      expect(srcContent).not.toContain('@scope/package');
     });
 
     test('should fail if not a devcode project', async () => {

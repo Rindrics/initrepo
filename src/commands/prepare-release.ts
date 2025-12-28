@@ -16,6 +16,20 @@ interface PackageJson {
 }
 
 /**
+ * Managed locations where devcode replacement is performed automatically.
+ * Each location specifies the file and how to replace.
+ */
+interface ManagedLocation {
+  file: string;
+  description: string;
+  replace: (
+    targetDir: string,
+    devcode: string,
+    publishName: string,
+  ) => Promise<void>;
+}
+
+/**
  * Reads package.json and detects if this is a devcode project
  * Returns the devcode name if private: true, otherwise throws
  */
@@ -48,37 +62,77 @@ export async function detectDevcode(targetDir: string): Promise<string> {
 
 /**
  * Updates package.json: replaces name and removes "private": true
+ * This is a MANAGED replacement - only touches the "name" field
  */
-export async function updatePackageJson(
+async function replaceInPackageJson(
   targetDir: string,
+  _devcode: string,
   publishName: string,
-): Promise<string> {
+): Promise<void> {
   const packageJsonPath = path.join(targetDir, 'package.json');
   const content = await fs.readFile(packageJsonPath, 'utf-8');
   const pkg = JSON.parse(content) as PackageJson;
 
-  const devcode = pkg.name;
-
-  // Update name
+  // Only replace the managed "name" field
   pkg.name = publishName;
 
   // Remove private flag
   delete pkg.private;
 
-  // Write back with consistent formatting
   await fs.writeFile(
     packageJsonPath,
     `${JSON.stringify(pkg, null, 2)}\n`,
     'utf-8',
   );
+}
 
-  return devcode;
+/**
+ * Updates codeql-config.yml: replaces only the "name" field
+ * This is a MANAGED replacement - only touches the YAML name field
+ */
+async function replaceInCodeqlConfig(
+  targetDir: string,
+  devcode: string,
+  publishName: string,
+): Promise<void> {
+  const configPath = path.join(targetDir, '.github/codeql/codeql-config.yml');
+
+  let content: string;
+  try {
+    content = await fs.readFile(configPath, 'utf-8');
+  } catch (error) {
+    const fsError = error as NodeJS.ErrnoException;
+    if (fsError.code === 'ENOENT') {
+      return; // File doesn't exist, nothing to do
+    }
+    throw error;
+  }
+
+  // Line-based parsing to avoid ReDoS vulnerability
+  // Only replace devcode in the first line that starts with "name:"
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trimStart().startsWith('name:')) {
+      // Replace devcode only in this specific line
+      lines[i] = line.replace(devcode, publishName);
+      break;
+    }
+  }
+  content = lines.join('\n');
+
+  await fs.writeFile(configPath, content, 'utf-8');
 }
 
 /**
  * Updates tagpr.yml: switches from GITHUB_TOKEN to PAT_FOR_TAGPR
+ * This is a MANAGED replacement - only touches specific workflow patterns
  */
-export async function updateTagprWorkflow(targetDir: string): Promise<void> {
+async function replaceInTagprWorkflow(
+  targetDir: string,
+  _devcode: string,
+  _publishName: string,
+): Promise<void> {
   const workflowPath = path.join(targetDir, '.github/workflows/tagpr.yml');
 
   let content: string;
@@ -87,8 +141,7 @@ export async function updateTagprWorkflow(targetDir: string): Promise<void> {
   } catch (error) {
     const fsError = error as NodeJS.ErrnoException;
     if (fsError.code === 'ENOENT') {
-      console.warn('Warning: tagpr.yml not found, skipping');
-      return;
+      return; // File doesn't exist, nothing to do
     }
     throw error;
   }
@@ -115,29 +168,101 @@ export async function updateTagprWorkflow(targetDir: string): Promise<void> {
 }
 
 /**
- * Updates codeql-config.yml: replaces devcode name
+ * Managed locations where devcode is automatically replaced
  */
-export async function updateCodeqlConfig(
+const MANAGED_LOCATIONS: ManagedLocation[] = [
+  {
+    file: 'package.json',
+    description: 'name field',
+    replace: replaceInPackageJson,
+  },
+  {
+    file: '.github/codeql/codeql-config.yml',
+    description: 'name field',
+    replace: replaceInCodeqlConfig,
+  },
+  {
+    file: '.github/workflows/tagpr.yml',
+    description: 'GITHUB_TOKEN → PAT_FOR_TAGPR',
+    replace: replaceInTagprWorkflow,
+  },
+];
+
+/**
+ * Scans project for unmanaged occurrences of devcode
+ */
+async function findUnmanagedOccurrences(
   targetDir: string,
   devcode: string,
-  publishName: string,
-): Promise<void> {
-  const configPath = path.join(targetDir, '.github/codeql/codeql-config.yml');
+): Promise<{ file: string; line: number; content: string }[]> {
+  const occurrences: { file: string; line: number; content: string }[] = [];
+  const managedFiles = new Set(MANAGED_LOCATIONS.map((l) => l.file));
 
-  let content: string;
-  try {
-    content = await fs.readFile(configPath, 'utf-8');
-  } catch (error) {
-    const fsError = error as NodeJS.ErrnoException;
-    if (fsError.code === 'ENOENT') {
-      console.warn('Warning: codeql-config.yml not found, skipping');
-      return;
+  // Files to scan (excluding node_modules, .git, etc.)
+  const filesToScan = await findFilesRecursive(targetDir, [
+    'node_modules',
+    '.git',
+    'dist',
+    'bun.lockb',
+  ]);
+
+  for (const file of filesToScan) {
+    const relativePath = path.relative(targetDir, file);
+
+    // Skip managed files
+    if (managedFiles.has(relativePath)) {
+      continue;
     }
-    throw error;
+
+    try {
+      const content = await fs.readFile(file, 'utf-8');
+      const lines = content.split('\n');
+
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes(devcode)) {
+          occurrences.push({
+            file: relativePath,
+            line: i + 1,
+            content: lines[i].trim().substring(0, 80),
+          });
+        }
+      }
+    } catch {
+      // Skip files that can't be read (binary, etc.)
+    }
   }
 
-  content = content.replace(devcode, publishName);
-  await fs.writeFile(configPath, content, 'utf-8');
+  return occurrences;
+}
+
+/**
+ * Recursively find all files in a directory
+ */
+async function findFilesRecursive(
+  dir: string,
+  excludeDirs: string[],
+): Promise<string[]> {
+  const files: string[] = [];
+
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        if (!excludeDirs.includes(entry.name)) {
+          files.push(...(await findFilesRecursive(fullPath, excludeDirs)));
+        }
+      } else if (entry.isFile()) {
+        files.push(fullPath);
+      }
+    }
+  } catch {
+    // Skip directories that can't be read
+  }
+
+  return files;
 }
 
 /**
@@ -152,19 +277,36 @@ export async function prepareRelease(
   const devcode = await detectDevcode(targetDir);
 
   console.log(`Detected devcode project: ${devcode}`);
-  console.log(`Preparing release: ${devcode} → ${options.publishName}`);
+  console.log(`Preparing release: ${devcode} → ${options.publishName}\n`);
 
-  // Update package.json (returns devcode for other updates)
-  await updatePackageJson(targetDir, options.publishName);
-  console.log('✅ Updated package.json');
+  // Process managed locations
+  console.log('📁 Managed replacements:');
+  for (const location of MANAGED_LOCATIONS) {
+    try {
+      await location.replace(targetDir, devcode, options.publishName);
+      console.log(`   ✅ ${location.file} (${location.description})`);
+    } catch (error) {
+      console.log(
+        `   ⚠️  ${location.file}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
 
-  // Update tagpr.yml
-  await updateTagprWorkflow(targetDir);
-  console.log('✅ Updated tagpr.yml');
+  // Scan for unmanaged occurrences
+  const unmanaged = await findUnmanagedOccurrences(targetDir, devcode);
 
-  // Update codeql-config.yml
-  await updateCodeqlConfig(targetDir, devcode, options.publishName);
-  console.log('✅ Updated codeql-config.yml');
+  if (unmanaged.length > 0) {
+    console.log(
+      `\n⚠️  Found ${unmanaged.length} unmanaged occurrence(s) of "${devcode}":`,
+    );
+    console.log(
+      '   These were NOT automatically replaced. Please review manually:',
+    );
+    for (const occurrence of unmanaged) {
+      console.log(`   - ${occurrence.file}:${occurrence.line}`);
+      console.log(`     ${occurrence.content}`);
+    }
+  }
 
   console.log(`\n🎉 Release preparation complete!`);
   console.log(`   Package renamed: ${devcode} → ${options.publishName}`);
@@ -190,7 +332,7 @@ export function registerPrepareReleaseCommand(program: Command): void {
   program
     .command('prepare-release <publish-name>')
     .description(
-      'Prepare for release by replacing devcode with <publish-name> (auto-detects devcode from package.json)',
+      'Prepare a devcode project for release (auto-detects devcode from package.json)',
     )
     .option(
       '-t, --target-dir <path>',
