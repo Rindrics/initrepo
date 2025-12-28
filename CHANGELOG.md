@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.1](https://github.com/Rindrics/initrepo/compare/v0.2.0...v0.2.1) - 2025-12-28
+- docs: update README.md by @Rindrics in https://github.com/Rindrics/initrepo/pull/24
+
 ## [v0.2.0](https://github.com/Rindrics/initrepo/compare/v0.1.5...v0.2.0) - 2025-12-28
 - ci: commit as GitHub Actions bot by @Rindrics in https://github.com/Rindrics/initrepo/pull/20
 - feat: generate publish.yml from prepare-release command by @Rindrics in https://github.com/Rindrics/initrepo/pull/21
