@@ -12,6 +12,7 @@ const DEV_DEPENDENCIES = [
   '@commitlint/config-conventional',
   'bun-types',
   'husky',
+  'lint-staged',
   'typescript',
 ];
 
