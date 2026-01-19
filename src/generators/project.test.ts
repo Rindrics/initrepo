@@ -248,7 +248,7 @@ describe('project generator', () => {
       expect(result.content).toContain(
         'GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}',
       );
-      expect(result.content).toContain('# TODO: After replace-devcode');
+      expect(result.content).toContain('# TODO: After prepare-release');
 
       // Version should be at least the minimum expected
       expect(

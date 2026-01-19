@@ -15,11 +15,16 @@ jobs:
       - uses: actions/checkout@v6
         with:
           token: ${{ secrets.PAT_FOR_TAGPR }}
-         
+
+      - name: Configure SSH signing
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_SIGNING_KEY }}" > ~/.ssh/signing_key
+          chmod 600 ~/.ssh/signing_key
+          git config --global gpg.format ssh
+          git config --global user.signingkey ~/.ssh/signing_key
+          git config --global commit.gpgsign true
+
       - uses: Songmu/tagpr@v1
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_FOR_TAGPR }}
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
