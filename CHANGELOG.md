@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.0](https://github.com/Rindrics/initrepo/compare/v0.2.1...v0.3.0) - 2026-01-19
+- ci: use renovate to use bun by @Rindrics in https://github.com/Rindrics/initrepo/pull/35
+- feat: generate tagpr config by @Rindrics in https://github.com/Rindrics/initrepo/pull/37
+
 ## [v0.2.1](https://github.com/Rindrics/initrepo/compare/v0.2.0...v0.2.1) - 2026-01-19
 - docs: update README.md by @Rindrics in https://github.com/Rindrics/initrepo/pull/24
 - feat: add command setup-husky by @Rindrics in https://github.com/Rindrics/initrepo/pull/32
