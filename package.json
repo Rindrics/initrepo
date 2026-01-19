@@ -16,7 +16,12 @@
     "clean": "rm -rf test-* dist",
     "prepare": "husky"
   },
-  "keywords": ["cli", "scaffold", "setup", "repository"],
+  "keywords": [
+    "cli",
+    "scaffold",
+    "setup",
+    "repository"
+  ],
   "author": "Rindrics",
   "license": "MIT",
   "repository": {
