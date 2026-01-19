@@ -16,11 +16,13 @@ jobs:
         with:
           token: ${{ secrets.PAT_FOR_TAGPR }}
 
-      - name: Configure SSH signing
+      - name: Configure Git and SSH signing
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_SIGNING_KEY }}" > ~/.ssh/signing_key
           chmod 600 ~/.ssh/signing_key
+          git config --global user.name "Rindrics"
+          git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config --global gpg.format ssh
           git config --global user.signingkey ~/.ssh/signing_key
           git config --global commit.gpgsign true
