@@ -49,6 +49,12 @@ async function writeFiles(
 
     // Write file
     await fs.writeFile(filePath, file.content, 'utf-8');
+
+    // Set executable permission for husky hooks
+    if (file.path.startsWith('.husky/')) {
+      await fs.chmod(filePath, 0o755);
+    }
+
     written.push(file.path);
   }
 
