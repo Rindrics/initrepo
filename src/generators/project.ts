@@ -5,6 +5,7 @@ import type { InitOptions } from '../types';
 import { getLatestActionVersions } from '../utils/github';
 import { getLatestVersions, getNpmUsername } from '../utils/npm';
 import { EMBEDDED_TEMPLATES } from './embedded-templates';
+import { generateHuskySetup } from './husky';
 
 const DEV_DEPENDENCIES = [
   '@biomejs/biome',
@@ -12,6 +13,7 @@ const DEV_DEPENDENCIES = [
   '@commitlint/config-conventional',
   'bun-types',
   'husky',
+  'lint-staged',
   'typescript',
 ];
 
@@ -251,18 +253,21 @@ export async function generateProject(options: InitOptions): Promise<void> {
   const outputDir = options.targetDir ?? options.projectName;
   const actionVersions = await getLatestActionVersions();
 
-  const files: GeneratedFile[] = await Promise.all([
-    generatePackageJson(options),
-    generateTsconfig(options),
-    generateEntryPoint(options),
-    generateTagprConfig(options),
-    generateTagprWorkflow(options, actionVersions),
-    generateCiWorkflow(options, actionVersions),
-    generateCodeqlWorkflow(options, actionVersions),
-    generateCodeqlConfig(options),
-    generateDependabot(options),
-    generateReleaseConfig(),
-  ]);
+  const files: GeneratedFile[] = [
+    ...(await Promise.all([
+      generatePackageJson(options),
+      generateTsconfig(options),
+      generateEntryPoint(options),
+      generateTagprConfig(options),
+      generateTagprWorkflow(options, actionVersions),
+      generateCiWorkflow(options, actionVersions),
+      generateCodeqlWorkflow(options, actionVersions),
+      generateCodeqlConfig(options),
+      generateDependabot(options),
+      generateReleaseConfig(),
+    ])),
+    ...generateHuskySetup(),
+  ];
 
   try {
     await writeGeneratedFiles(outputDir, files);
