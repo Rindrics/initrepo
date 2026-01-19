@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.2.1](https://github.com/Rindrics/initrepo/compare/v0.2.0...v0.2.1) - 2026-01-19
+- docs: update README.md by @Rindrics in https://github.com/Rindrics/initrepo/pull/24
+- feat: add command setup-husky by @Rindrics in https://github.com/Rindrics/initrepo/pull/32
+- feat: generate .gitignore by @Rindrics in https://github.com/Rindrics/initrepo/pull/33
+- feat: use ssh ket for commit signing by @Rindrics in https://github.com/Rindrics/initrepo/pull/34
+
 ## [v0.2.0](https://github.com/Rindrics/initrepo/compare/v0.1.5...v0.2.0) - 2025-12-28
 - ci: commit as GitHub Actions bot by @Rindrics in https://github.com/Rindrics/initrepo/pull/20
 - feat: generate publish.yml from prepare-release command by @Rindrics in https://github.com/Rindrics/initrepo/pull/21
