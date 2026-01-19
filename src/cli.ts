@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import packageJson from '../package.json';
 import { registerInitCommand } from './commands/init';
 import { registerPrepareReleaseCommand } from './commands/prepare-release';
+import { registerSetupHuskyCommand } from './commands/setup-husky';
 
 const { version: VERSION, name: NAME } = packageJson;
 
@@ -16,6 +17,7 @@ export function createProgram(): Command {
 
   registerInitCommand(program);
   registerPrepareReleaseCommand(program);
+  registerSetupHuskyCommand(program);
 
   return program;
 }
