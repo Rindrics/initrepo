@@ -161,6 +161,13 @@ export async function generateReleaseConfig(): Promise<GeneratedFile> {
   return { path: '.github/release.yml', content };
 }
 
+export async function generateGitignore(
+  options: InitOptions,
+): Promise<GeneratedFile> {
+  const content = loadTemplate(`${options.lang}/gitignore.ejs`, {});
+  return { path: '.gitignore', content };
+}
+
 export class FileWriteError extends Error {
   constructor(
     message: string,
@@ -258,6 +265,7 @@ export async function generateProject(options: InitOptions): Promise<void> {
       generatePackageJson(options),
       generateTsconfig(options),
       generateEntryPoint(options),
+      generateGitignore(options),
       generateTagprConfig(options),
       generateTagprWorkflow(options, actionVersions),
       generateCiWorkflow(options, actionVersions),
