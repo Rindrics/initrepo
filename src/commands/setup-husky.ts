@@ -65,9 +65,7 @@ export async function setupHusky(options: SetupHuskyOptions): Promise<void> {
   // Check if package.json exists
   const packageJsonPath = path.join(targetDir, 'package.json');
   if (!(await fileExists(packageJsonPath))) {
-    throw new Error(
-      'package.json not found. Are you in a project directory?',
-    );
+    throw new Error('package.json not found. Are you in a project directory?');
   }
 
   console.log('🔧 Setting up husky hooks and lint-staged config...\n');
@@ -103,15 +101,14 @@ export async function setupHusky(options: SetupHuskyOptions): Promise<void> {
 export function registerSetupHuskyCommand(program: Command): void {
   program
     .command('setup-husky')
-    .description('Set up husky hooks and lint-staged config in an existing project')
+    .description(
+      'Set up husky hooks and lint-staged config in an existing project',
+    )
     .option(
       '-t, --target-dir <path>',
       'Target directory (defaults to current directory)',
     )
-    .option(
-      '-f, --force',
-      'Overwrite existing files',
-    )
+    .option('-f, --force', 'Overwrite existing files')
     .action(async (opts: { targetDir?: string; force?: boolean }) => {
       try {
         await setupHusky({
