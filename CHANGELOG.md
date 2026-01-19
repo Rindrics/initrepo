@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.3.1](https://github.com/Rindrics/initrepo/compare/v0.3.0...v0.3.1) - 2026-01-19
+- feat: add renovate command by @Rindrics in https://github.com/Rindrics/initrepo/pull/38
+
 ## [v0.3.0](https://github.com/Rindrics/initrepo/compare/v0.2.1...v0.3.0) - 2026-01-19
 - ci: use renovate to use bun by @Rindrics in https://github.com/Rindrics/initrepo/pull/35
 - feat: generate tagpr config by @Rindrics in https://github.com/Rindrics/initrepo/pull/37
